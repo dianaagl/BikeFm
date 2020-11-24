@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">BikeFm2</string>
+    <string name="mapbox_access_token">pk.eyJ1IjoiZGlhbmFhZ2wiLCJhIjoiY2todGd2MHp2MW16bzJ6cDVlZXZzenRhaSJ9.cySr0o0glHRJiPD7Uxxpvg</string>
+</resources>
