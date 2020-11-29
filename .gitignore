@@ -15,3 +15,4 @@
 gradle.properties
 gradle/wrapper/*
 .idea/*
+node_modules/*

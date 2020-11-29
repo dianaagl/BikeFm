@@ -1,0 +1,10 @@
+mutation registration($name: String!, $password: String!) {
+    registration(name: $name, password: $password){
+        user {
+            _id
+            name
+        }
+        token
+        error
+    }
+}

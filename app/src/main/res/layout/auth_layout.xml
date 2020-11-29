@@ -6,14 +6,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".ui.map.MainActivity">
+>
 
-    <com.mapbox.mapboxsdk.maps.MapView
-        android:id="@+id/mapView"
+    <TextView
+        android:id="@+id/textView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        mapbox:mapbox_cameraTargetLat="-32.557013"
-        mapbox:mapbox_cameraTargetLng="-56.149056"
-        mapbox:mapbox_cameraZoom="5.526846"/>
+        android:layout_height="wrap_content"
+        android:text="TextView" />
+
+    <Button
+        android:id="@+id/showResId"
+        android:layout_width="164dp"
+        android:layout_height="wrap_content"
+        android:text="type" />
 
 </LinearLayout>
