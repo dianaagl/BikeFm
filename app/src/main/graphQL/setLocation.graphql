@@ -1,0 +1,3 @@
+mutation setLocation($latitude: Float!, $longitude: Float!) {
+    setLocation(latitude: $latitude, longitude: $longitude)
+}

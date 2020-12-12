@@ -1,0 +1,6 @@
+query verify($token: String!) {
+    user(token: $token){
+        _id
+        name
+    }
+}
