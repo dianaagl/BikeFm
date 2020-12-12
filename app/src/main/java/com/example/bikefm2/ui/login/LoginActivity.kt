@@ -12,16 +12,16 @@ import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import com.example.bikefm2.BikeFmApp
 import com.example.bikefm2.R
+import com.example.bikefm2.data.db.BikeDatabase
 import com.example.bikefm2.data.model.LoggedInUser
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class LoginActivity : AppCompatActivity() {
-
     lateinit var loginViewModel: LoginViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,21 +77,18 @@ class LoginActivity : AppCompatActivity() {
                 false
             }
 
+            loginViewModel.loginResult.observe(this@LoginActivity, Observer {
+                val loginResult = it ?: return@Observer
+                observeResult(loading, loginResult)
+            })
+
             login.setOnClickListener {
                 loading.visibility = View.VISIBLE
                 loginViewModel.login(username.text.toString(), password.text.toString())
-                    .observe(this@LoginActivity, Observer {
-                    val loginResult = it ?: return@Observer
-                    observeResult(loading, loginResult)
-                })
             }
             register.setOnClickListener {
                 loading.visibility = View.VISIBLE
                 loginViewModel.register(username.text.toString(), password.text.toString())
-                .observe(this@LoginActivity, Observer {
-                    val loginResult = it ?: return@Observer
-                    observeResult(loading, loginResult)
-                })
             }
         }
     }
@@ -103,8 +100,11 @@ class LoginActivity : AppCompatActivity() {
         }
         if (loginResult.success != null) {
             updateUiWithUser(loginResult.success)
+            val resultIntent = Intent()
+            resultIntent.putExtra("displayName", loginResult.success.displayName)
+            setResult(RESULT_OK, resultIntent)
+            finish()
         }
-        setResult(Activity.RESULT_OK)
     }
 
     private fun updateUiWithUser(model: LoggedInUser) {

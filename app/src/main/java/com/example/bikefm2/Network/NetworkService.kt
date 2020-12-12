@@ -29,7 +29,7 @@ class NetworkService {
                     .newBuilder()
                     .method(original.method, original.body)
 
-                builder.header("Authorization", "Bearer $token")
+                builder.header("token", token)
                 return@Interceptor chain.proceed(builder.build())
             })
             .build()
