@@ -1,13 +1,14 @@
 package com.example.bikefm2.ui.map
 
+import android.content.Context
 import android.location.Location
+import android.net.ConnectivityManager
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.bikefm2.data.UserRepository
-import com.example.bikefm2.data.db.UserDao
 import com.example.bikefm2.data.model.Friend
 import com.example.bikefm2.ui.login.LoginResult
 import kotlinx.coroutines.Dispatchers
@@ -23,18 +24,15 @@ class MapViewModel @ViewModelInject constructor(
     private val _friendsList = MutableLiveData<List<Friend>>()
     var friendsList: LiveData<List<Friend>> = _friendsList
 
-
-
     fun verifyUser(){
         viewModelScope.launch(Dispatchers.IO){
-
            val res =  _userRepository.verifyUser()
            _user.postValue(res)
         }
     }
 
     fun addFriends(users: List<Friend>){
-        viewModelScope.launch (Dispatchers.IO){
+        viewModelScope.launch(Dispatchers.IO){
             _userRepository.addFriendsList(users)
             _friendsList.postValue(users)
         }
@@ -42,8 +40,16 @@ class MapViewModel @ViewModelInject constructor(
 
     fun setUserLocation(loc: Location){
         viewModelScope.launch {
-
            val res =  _userRepository.setUserLocation(loc)
+        }
+    }
+
+    fun getUser(){
+        viewModelScope.launch(Dispatchers.IO){
+            val res =  _userRepository.getUser()
+            if(res !== null){
+                _user.postValue(LoginResult(success = res))
+            }
         }
     }
 }

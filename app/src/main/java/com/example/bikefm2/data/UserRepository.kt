@@ -35,32 +35,27 @@ class UserRepository @Inject constructor(
 ) {
     private val mDatabase: BikeDatabase = BikeDatabase.getDatabase(BikeFmApp.applicationContext())
     // in-memory cache of the loggedInUser object
-    var user: LoggedInUser? = null
-        private set
-
-    val isLoggedIn: Boolean
-        get() = user != null
+    var cashedUser: LoggedInUser? = null
 
     init {
         // If user credentials will be cached in local storage, it is recommended it be encrypted
         // @see https://developer.android.com/training/articles/keystore
-        user = null
+        cashedUser = null
     }
-
-    fun logout() {
-        user = null
-        //todo
+    suspend fun getUser(): LoggedInUser?{
+        return mDatabase.userDao().getUser()
     }
     suspend fun verifyUser(): LoginResult{
 //        val job = BikeFmApp.getMapScope()?.launch {
             val dbUser = mDatabase.userDao().getUser()
             if (dbUser !== null) {
                 return try {
-                    val user = serverApi.verifyUser(dbUser.token)
-                    if (user !== null) {
+                    val resUser: LoggedInUser? = serverApi.verifyUser(dbUser.token)
+                    if (resUser !== null) {
                         mDatabase.userDao().deleteAllFriends()
-                        mDatabase.userDao().updateUser(user)
-                        LoginResult(success = user)
+                        mDatabase.userDao().updateUser(resUser)
+                        cashedUser = resUser
+                        LoginResult(success = resUser)
                     }
                     else
                     {
@@ -94,7 +89,7 @@ class UserRepository @Inject constructor(
     }
 
     private fun setLoggedInUser(loggedInUser: LoggedInUser) {
-        this.user = loggedInUser
+        this.cashedUser = loggedInUser
         // If user credentials will be cached in local storage, it is recommended it be encrypted
         // @see https://developer.android.com/training/articles/keystore
     }

@@ -3,9 +3,13 @@ package com.example.bikefm2.ui.map
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color.parseColor
+import android.net.*
+import android.net.ConnectivityManager.NetworkCallback
 import android.os.Bundle
 import android.view.View
 import android.view.View.INVISIBLE
@@ -13,6 +17,7 @@ import android.view.View.VISIBLE
 import android.widget.LinearLayout
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.NonNull
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -21,7 +26,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.bikefm2.R
-import com.example.bikefm2.data.model.Friend
 import com.example.bikefm2.data.model.FriendAdapter
 import com.example.bikefm2.ui.login.LoginActivity
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -86,7 +90,6 @@ class OnlyMap :
 
     private lateinit var mapViewModel: MapViewModel
     private var locationEngine: LocationEngine? = null
-    private lateinit var linearLayoutManager: LinearLayoutManager
 
     private val startForResult = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -102,37 +105,25 @@ class OnlyMap :
     @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Mapbox.getInstance(applicationContext, getString(R.string.mapbox_access_token))
 
         val mapboxNavigationOptions = MapboxNavigation
             .defaultNavigationOptionsBuilder(this, getString(R.string.mapbox_access_token))
             .build()
 
         mapboxNavigation = MapboxNavigation(mapboxNavigationOptions)
+        Mapbox.getInstance(applicationContext, getString(R.string.mapbox_access_token))
+
         setContentView(R.layout.layout_map)
         setActionBar(findViewById(R.id.my_toolbar))
-        mapViewModel = ViewModelProvider(this).get<MapViewModel>(MapViewModel::class.java)
-        mapViewModel.user.observe(this@OnlyMap, Observer {
-            val loginResult = it ?: return@Observer
-            if (loginResult.success !== null) {
-                actionBar?.title = loginResult.success.displayName
-                mapView.getMapAsync(this)
-                locationEngine = LocationEngineProvider.getBestLocationEngine(this)
-                mapViewModel.addFriends(loginResult.success.friendsList)
+        mapView.onCreate(savedInstanceState)
 
-            } else {
-                startForResult.launch(Intent(this@OnlyMap, LoginActivity::class.java))
-            }
-        })
-        val adapter = FriendAdapter()
-        linearLayoutManager = LinearLayoutManager(this)
+        mapViewModel = ViewModelProvider(this).get<MapViewModel>(MapViewModel::class.java)
+        mapViewModel.getUser()
+
+        val friendsAdapter = FriendAdapter()
         val listView = findViewById<RecyclerView>(R.id.friends_list)
-        listView.layoutManager = linearLayoutManager
-        listView.adapter = adapter
-        mapViewModel.friendsList.observe(this@OnlyMap, Observer {
-            it -> adapter.updateFriendList(it)
-            adapter.notifyDataSetChanged();
-        })
+        listView.layoutManager = LinearLayoutManager(this)
+        listView.adapter = friendsAdapter
 
         if (ActivityCompat.checkSelfPermission(
                 this,
@@ -145,56 +136,59 @@ class OnlyMap :
             requestPermissionsIfNecessary(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
         }
 
-        mapViewModel.verifyUser()
-        mapView.onCreate(savedInstanceState)
-
-        var bottom_sheet = findViewById<LinearLayout>(R.id.bottom_sheet);
-        var sheetBehavior = BottomSheetBehavior.from(bottom_sheet);
-        sheetBehavior.addBottomSheetCallback(object : BottomSheetCallback() {
-            override fun onStateChanged(view: View, newState: Int) {
-                when (newState) {
-                    BottomSheetBehavior.STATE_HIDDEN -> {
-                    }
-                    BottomSheetBehavior.STATE_EXPANDED -> {
+        BottomSheetBehavior.from(findViewById<LinearLayout>(R.id.bottom_sheet)).addBottomSheetCallback(
+            object : BottomSheetCallback() {
+                override fun onStateChanged(view: View, newState: Int) {
+                    when (newState) {
+                        BottomSheetBehavior.STATE_HIDDEN -> {
+                        }
+                        BottomSheetBehavior.STATE_EXPANDED -> {
 //                        btn_bottom_sheet.setText("Close Sheet")
-                    }
-                    BottomSheetBehavior.STATE_COLLAPSED -> {
-                        //                       btn_bottom_sheet.setText("Expand Sheet")
-                    }
-                    BottomSheetBehavior.STATE_DRAGGING -> {
-                    }
-                    BottomSheetBehavior.STATE_SETTLING -> {
+                        }
+                        BottomSheetBehavior.STATE_COLLAPSED -> {
+                            //                       btn_bottom_sheet.setText("Expand Sheet")
+                        }
+                        BottomSheetBehavior.STATE_DRAGGING -> {
+                        }
+                        BottomSheetBehavior.STATE_SETTLING -> {
+                        }
                     }
                 }
+
+                override fun onSlide(view: View, v: Float) {}
+            })
+        mapViewModel.user.observe(this@OnlyMap, Observer {
+            val loginResult = it ?: return@Observer
+            if (loginResult.success !== null) {
+                actionBar?.title = loginResult.success.displayName
+                mapView.getMapAsync(this)
+                locationEngine = LocationEngineProvider.getBestLocationEngine(this)
+                mapViewModel.addFriends(loginResult.success.friendsList)
+
+            } else {
+                startForResult.launch(Intent(this@OnlyMap, LoginActivity::class.java))
             }
-
-            override fun onSlide(view: View, v: Float) {}
         })
-
+        mapViewModel.friendsList.observe(this@OnlyMap, Observer { it ->
+            friendsAdapter.updateFriendList(
+                it
+            )
+            friendsAdapter.notifyDataSetChanged();
+        })
+        val cm = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        cm.registerNetworkCallback(
+            NetworkRequest.Builder()
+            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build(), networkCallback)
     }
-
-    private fun adapterOnClick(friend: Friend) {
-
-    }
-
-//    private fun observeResult(loading: ProgressBar, loginResult: LoginResult){
-//        loading.visibility = View.GONE
-//        if (loginResult.error != null) {
-//            showLoginFailed(loginResult.error)
-//        }
-//        if (loginResult.success != null) {
-//            updateUiWithUser(loginResult.success)
-//            BikeFmApp.login(loginResult.success.userId)
-//            val intent = Intent(this, OnlyMap::class.java).apply {
-////            putExtra(EXTRA_MESSAGE, message)
-//            }
-//            startActivity(intent)
-//        }
-//        setResult(Activity.RESULT_OK)
-//    }
 
     override fun onMapReady(mapboxMap: MapboxMap) {
-        mapboxMap.setStyle(Style.LIGHT) {
+        mapboxMap.setStyle(
+//            Style.MAPBOX_STREETS
+//            Style.Builder().fromUri("mapbox://styles/dianaagl/ckionrj5o3cwo17muljj0whc0")
+            Style.Builder().fromUri("mapbox://styles/dianaagl/ckiorfzij51xq17qvpgyxyk6t")
+
+        ){
             this.mapboxMap = mapboxMap
 
             // Add the click and route sources
@@ -252,40 +246,16 @@ class OnlyMap :
             if (ActivityCompat.checkSelfPermission(
                     this,
                     Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                ) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
                     this,
                     Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED)
-            {
-                withEnabledLocation()
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                enableLocationComponent()
             }
         }
     }
-    @SuppressLint("MissingPermission")
-    fun withEnabledLocation(){
-        val DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L
-        val DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5
-        var request = LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
-            .setPriority(LocationEngineRequest.PRIORITY_NO_POWER)
-            .setMaxWaitTime(DEFAULT_MAX_WAIT_TIME)
-            .build()
 
-        enableLocationComponent()
-        locationEngine?.requestLocationUpdates(
-            request,
-            locationObserverCallback!!,
-            mainLooper
-        )
-        val userLocation = mapboxMap?.locationComponent?.lastKnownLocation
-        if(userLocation !== null) {
-            val position = CameraPosition.Builder()
-                .target(LatLng(userLocation.latitude, userLocation.longitude))
-                .zoom(10.0)
-                .tilt(20.0)
-                .build()
-            mapboxMap?.animateCamera(CameraUpdateFactory.newCameraPosition(position), 300);
-        }
-    }
     override fun onMapLongClick(latLng: LatLng): Boolean {
         route_retrieval_progress_spinner.visibility = VISIBLE
         // Place the destination marker at the map long click location
@@ -302,7 +272,7 @@ class OnlyMap :
                         null, Point.fromLngLat(latLng.longitude, latLng.latitude)
                     )
                     .alternatives(true)
-                    .profile(DirectionsCriteria.PROFILE_DRIVING_TRAFFIC)
+                    .profile(DirectionsCriteria.PROFILE_CYCLING)
                     .build(),
                 routesReqCallback
             )
@@ -354,6 +324,14 @@ class OnlyMap :
      */
     @SuppressLint("MissingPermission")
     private fun enableLocationComponent() {
+        val DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L
+        val DEFAULT_DURATION_IN_MILLISECONDS = 1000
+        val DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5
+        var request = LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
+            .setPriority(LocationEngineRequest.PRIORITY_NO_POWER)
+            .setMaxWaitTime(DEFAULT_MAX_WAIT_TIME)
+            .build()
+
         mapboxMap?.getStyle {
             mapboxMap?.locationComponent?.apply {
                 activateLocationComponent(
@@ -368,7 +346,26 @@ class OnlyMap :
                 renderMode = RenderMode.COMPASS
             }
         }
-    }
+
+        locationEngine?.requestLocationUpdates(
+            request,
+            locationObserverCallback!!,
+            mainLooper
+        )
+        val userLocation = mapboxMap?.locationComponent?.lastKnownLocation
+        if(userLocation !== null) {
+            val position = CameraPosition.Builder()
+                .target(LatLng(userLocation.latitude, userLocation.longitude))
+                .zoom(10.0)
+                .tilt(20.0)
+                .build()
+            mapboxMap?.animateCamera(
+                CameraUpdateFactory.newCameraPosition(position),
+                DEFAULT_DURATION_IN_MILLISECONDS
+            );
+        }
+
+     }
 
     override fun onStart() {
         super.onStart()
@@ -427,7 +424,7 @@ class OnlyMap :
             )
         }
         else{
-            withEnabledLocation()
+            enableLocationComponent()
         }
     }
 
@@ -450,5 +447,33 @@ class OnlyMap :
             )
         }
     }
+//
+//    fun isNetworkActive(): Boolean{
+//        val cm = this@OnlyMap.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+//        val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
+//        val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+//    }
 
+    private val networkChangeReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+
+        }
+    }
+
+    private val networkCallback: NetworkCallback = object : NetworkCallback() {
+        override fun onAvailable(network: Network) {
+            mapViewModel.verifyUser()
+            super.onAvailable(network)
+        }
+
+        override fun onLost(network: Network) {
+
+            super.onLost(network)
+        }
+
+        override fun onUnavailable() {
+
+            super.onUnavailable()
+        }
+    }
 }
