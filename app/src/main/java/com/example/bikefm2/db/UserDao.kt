@@ -42,7 +42,7 @@ interface UserDao {
     /*
 
      */
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     @JvmSuppressWildcards
     fun addFriends(objects: List<Friend>)
 }

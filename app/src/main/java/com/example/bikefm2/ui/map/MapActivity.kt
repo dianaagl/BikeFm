@@ -22,6 +22,7 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -280,8 +281,6 @@ class MapActivity :
             )
 
             mapboxMap.addOnMapLongClickListener(this)
-            locationObserverCallback = UserLocationObserver(this, mapViewModel)
-
             if (ActivityCompat.checkSelfPermission(
                     this,
                     Manifest.permission.ACCESS_FINE_LOCATION
@@ -385,7 +384,7 @@ class MapActivity :
                 renderMode = RenderMode.COMPASS
             }
         }
-
+        locationObserverCallback = UserLocationObserver(this, mapViewModel)
         locationEngine?.requestLocationUpdates(
             request,
             locationObserverCallback!!,
@@ -448,7 +447,7 @@ class MapActivity :
         permissions: Array<String>,
         grantResults: IntArray
     ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        super.onRequestPermissionsResult(REQUEST_PERMISSIONS_REQUEST_CODE, permissions, grantResults)
         val permissionsToRequest =
             java.util.ArrayList<String>()
         for (i in grantResults.indices) {
