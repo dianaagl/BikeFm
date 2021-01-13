@@ -5,7 +5,12 @@
     android:dividerPadding="3dp"
     android:orientation="horizontal"
     android:padding="5dp">
+<ImageView
+    android:src="@drawable/ic_baseline_mail_24"
+    android:layout_height="wrap_content"
+    android:layout_width="wrap_content">
 
+</ImageView>
     <TextView
         android:id="@+id/displayName"
         android:layout_width="wrap_content"

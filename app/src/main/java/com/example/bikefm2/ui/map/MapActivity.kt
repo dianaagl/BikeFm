@@ -11,13 +11,15 @@ import android.graphics.Color.parseColor
 import android.net.*
 import android.net.ConnectivityManager.NetworkCallback
 import android.os.Bundle
+import android.provider.AlarmClock.EXTRA_MESSAGE
+import android.view.SearchEvent
 import android.view.View
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.NonNull
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -26,8 +28,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.bikefm2.R
-import com.example.bikefm2.data.model.FriendAdapter
 import com.example.bikefm2.ui.login.LoginActivity
+import com.example.bikefm2.ui.search.SearchActivity
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import com.google.android.material.snackbar.Snackbar
@@ -76,7 +79,7 @@ import timber.log.Timber
  * of any kind in this example.
  */
 @AndroidEntryPoint
-class OnlyMap :
+class MapActivity :
     AppCompatActivity(),
     OnMapReadyCallback,
     MapboxMap.OnMapLongClickListener {
@@ -135,18 +138,21 @@ class OnlyMap :
         ) {
             requestPermissionsIfNecessary(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
         }
-
-        BottomSheetBehavior.from(findViewById<LinearLayout>(R.id.bottom_sheet)).addBottomSheetCallback(
+        val bottomNavigationView =
+            findViewById<View>(R.id.bottom_navigation) as BottomNavigationView
+        val bottomSheet = findViewById<LinearLayout>(R.id.bottom_sheet)
+        val bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
+        bottomSheetBehavior.addBottomSheetCallback(
             object : BottomSheetCallback() {
+                @SuppressLint("WrongConstant")
                 override fun onStateChanged(view: View, newState: Int) {
                     when (newState) {
                         BottomSheetBehavior.STATE_HIDDEN -> {
                         }
                         BottomSheetBehavior.STATE_EXPANDED -> {
-//                        btn_bottom_sheet.setText("Close Sheet")
+//                        btn_bottom_sheet.setText("Close Sheet"
                         }
                         BottomSheetBehavior.STATE_COLLAPSED -> {
-                            //                       btn_bottom_sheet.setText("Expand Sheet")
                         }
                         BottomSheetBehavior.STATE_DRAGGING -> {
                         }
@@ -157,7 +163,31 @@ class OnlyMap :
 
                 override fun onSlide(view: View, v: Float) {}
             })
-        mapViewModel.user.observe(this@OnlyMap, Observer {
+
+        val searchView = findViewById<ImageButton>(R.id.addFriendButton)
+        searchView.setOnClickListener { v ->
+            val intent = Intent(this, SearchActivity::class.java).apply {
+                putExtra(EXTRA_MESSAGE, "message")
+            }
+            startActivity(intent)
+        }
+
+        bottomNavigationView.setOnNavigationItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.friends -> {
+                    bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+//                    imgMap.setVisibility(VISIBLE)
+//                    imgDial.setVisibility()
+//                    imgMail.setVisibility(View.GONE)
+                }
+                R.id.page_2 -> {
+
+                }
+            }
+            false
+        }
+
+        mapViewModel.user.observe(this@MapActivity, Observer {
             val loginResult = it ?: return@Observer
             if (loginResult.success !== null) {
                 actionBar?.title = loginResult.success.displayName
@@ -166,10 +196,10 @@ class OnlyMap :
                 mapViewModel.addFriends(loginResult.success.friendsList)
 
             } else {
-                startForResult.launch(Intent(this@OnlyMap, LoginActivity::class.java))
+                startForResult.launch(Intent(this@MapActivity, LoginActivity::class.java))
             }
         })
-        mapViewModel.friendsList.observe(this@OnlyMap, Observer { it ->
+        mapViewModel.friendsList.observe(this@MapActivity, Observer { it ->
             friendsAdapter.updateFriendList(
                 it
             )
@@ -178,8 +208,17 @@ class OnlyMap :
         val cm = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         cm.registerNetworkCallback(
             NetworkRequest.Builder()
-            .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            .build(), networkCallback)
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .build(), networkCallback
+        )
+    }
+
+    override fun onSearchRequested(searchEvent: SearchEvent?): Boolean {
+        val appData = Bundle().apply {
+            putBoolean("JARGON", true)
+        }
+        startSearch(null, false, appData, false)
+        return super.onSearchRequested(searchEvent)
     }
 
     override fun onMapReady(mapboxMap: MapboxMap) {
@@ -336,7 +375,7 @@ class OnlyMap :
             mapboxMap?.locationComponent?.apply {
                 activateLocationComponent(
                     LocationComponentActivationOptions.builder(
-                        this@OnlyMap,
+                        this@MapActivity,
                         it
                     )
                         .build()
@@ -441,7 +480,7 @@ class OnlyMap :
         }
         if (permissionsToRequest.size > 0) {
             ActivityCompat.requestPermissions(
-                this@OnlyMap,
+                this@MapActivity,
                 permissionsToRequest.toTypedArray(),
                 REQUEST_PERMISSIONS_REQUEST_CODE
             )
@@ -477,3 +516,4 @@ class OnlyMap :
         }
     }
 }
+

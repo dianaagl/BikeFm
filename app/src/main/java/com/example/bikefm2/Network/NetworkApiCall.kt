@@ -3,15 +3,14 @@ package com.example.bikefm2.Network
 import LoginQuery
 import RegistrationMutation
 import SetLocationMutation
+import UsersSearchQuery
 import VerifyQuery
 import android.location.Location
-import android.util.Log
 import com.apollographql.apollo.ApolloCall
 import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.exception.ApolloException
 import com.example.bikefm2.data.model.Friend
-import com.example.bikefm2.data.model.LoggedInUser
-import com.example.bikefm2.ui.login.LoginResult
+import com.example.bikefm2.data.model.User
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -19,7 +18,7 @@ import kotlin.coroutines.suspendCoroutine
 
 class NetworkApiCall @Inject constructor() {
 
-    suspend fun loginUser(username: String, password: String): LoggedInUser{
+    suspend fun loginUser(username: String, password: String): User{
         return suspendCoroutine { continuation ->
             val client = NetworkService.getInstance()
                 ?.getApolloClient()
@@ -29,7 +28,7 @@ class NetworkApiCall @Inject constructor() {
 
                     override fun onResponse(response: Response<LoginQuery.Data>) {
                         if (response.data?.login()?.error() == null) {
-                            continuation.resume(LoggedInUser(
+                            continuation.resume(User(
                                 displayName = response.data?.login()?.user()
                                     ?.name()
                                     .toString(),
@@ -53,7 +52,7 @@ class NetworkApiCall @Inject constructor() {
         }
 
     }
-    suspend fun registerUser(username: String, password: String): LoggedInUser{
+    suspend fun registerUser(username: String, password: String): User{
         return suspendCoroutine { continuation ->
             val client = NetworkService.getInstance()
                 ?.getApolloClient()
@@ -62,7 +61,7 @@ class NetworkApiCall @Inject constructor() {
                 ?.enqueue(object : ApolloCall.Callback<RegistrationMutation.Data>() {
                     override fun onResponse(response: Response<RegistrationMutation.Data>) {
                         if (response.data?.registration()?.error() == null) {
-                            val user = LoggedInUser(
+                            val user = User(
                                 displayName = response.data?.registration()?.user()
                                     ?.name()
                                     .toString(),
@@ -103,7 +102,7 @@ class NetworkApiCall @Inject constructor() {
                 })
         }
     }
-    suspend fun verifyUser(token: String): LoggedInUser?{
+    suspend fun verifyUser(token: String): User?{
         return suspendCoroutine { continuation ->
             val client = NetworkService.getInstance()
                 ?.getApolloClient()
@@ -118,7 +117,7 @@ class NetworkApiCall @Inject constructor() {
                             continuation.resume(null)
                         }
                         else{
-                            val user = LoggedInUser(
+                            val user = User(
                                 displayName = response.data?.user()
                                     ?.name()!!,
                                 userId = response.data?.user()?._id()!!,
@@ -128,6 +127,37 @@ class NetworkApiCall @Inject constructor() {
                                     Friend("2", "Andrew", "Pancake"))
                             )
                             continuation.resume(user)
+
+                        }
+                    }
+
+                    override fun onFailure(e: ApolloException) {
+                        continuation.resumeWithException(e)
+                    }
+                })
+        }
+    }
+
+    suspend fun findUsers(query: String): List<Friend>?{
+        return suspendCoroutine { continuation ->
+            val client = NetworkService.getInstance()
+                ?.getApolloClient()
+
+            client
+                ?.query(UsersSearchQuery(query))
+                ?.enqueue(object : ApolloCall.Callback<UsersSearchQuery.Data>() {
+
+                    override fun onResponse(response: Response<UsersSearchQuery.Data>) {
+                        var users = response.data?.usersSearch()
+                        if (response.hasErrors() || users == null) {
+                            continuation.resume(listOf<Friend>())
+                        }
+                        else{
+                            var friends = mutableListOf<Friend>()
+                            users.forEach {
+                                friends.add(Friend(it._id(),it.name(), it.name()))
+                            }
+                            continuation.resume(friends)
 
                         }
                     }

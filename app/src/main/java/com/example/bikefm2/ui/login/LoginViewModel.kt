@@ -1,13 +1,12 @@
 package com.example.bikefm2.ui.login
 
-import android.util.Log
 import android.util.Patterns
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.*
 import com.example.bikefm2.data.UserRepository
 
 import com.example.bikefm2.R
-import com.example.bikefm2.data.model.LoggedInUser
+import com.example.bikefm2.data.LoginResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 

@@ -17,4 +17,9 @@
     <string name="no_routes">no routes</string>
     <string name="route_request_failed">failed</string>
     <string name="friends">Friends</string>
+    <string name="favorites">menu2</string>
+    <string name="music">musiv</string>
+    <string name="trips">trips</string>
+    <string name="label_act">SearchActivity</string>
+    <string name="search_title">search</string>
 </resources>

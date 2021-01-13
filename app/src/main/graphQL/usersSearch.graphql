@@ -1,0 +1,6 @@
+query usersSearch($searchString: String!) {
+    usersSearch(searchString: $searchString){
+        _id,
+        name
+    }
+}

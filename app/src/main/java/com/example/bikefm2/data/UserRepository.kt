@@ -1,28 +1,16 @@
 package com.example.bikefm2.data
 
-import LoginQuery
-import RegistrationMutation
-import VerifyQuery
 import android.location.Location
 import android.util.Log
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import com.apollographql.apollo.ApolloCall
-import com.apollographql.apollo.api.Response
-import com.apollographql.apollo.exception.ApolloException
 import com.example.bikefm2.BikeFmApp
 import com.example.bikefm2.Network.NetworkApiCall
-import com.example.bikefm2.Network.NetworkService
-import com.example.bikefm2.data.db.BikeDatabase
-import com.example.bikefm2.data.db.UserDao
+import com.example.bikefm2.db.BikeDatabase
 import com.example.bikefm2.data.model.Friend
-import com.example.bikefm2.data.model.LoggedInUser
-import com.example.bikefm2.ui.login.LoginResult
+import com.example.bikefm2.data.model.User
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import kotlin.coroutines.suspendCoroutine
 
 
 /**
@@ -35,22 +23,22 @@ class UserRepository @Inject constructor(
 ) {
     private val mDatabase: BikeDatabase = BikeDatabase.getDatabase(BikeFmApp.applicationContext())
     // in-memory cache of the loggedInUser object
-    var cashedUser: LoggedInUser? = null
+    var cashedUser: User? = null
 
     init {
         // If user credentials will be cached in local storage, it is recommended it be encrypted
         // @see https://developer.android.com/training/articles/keystore
         cashedUser = null
     }
-    suspend fun getUser(): LoggedInUser?{
+    suspend fun getUser(): User?{
         return mDatabase.userDao().getUser()
     }
-    suspend fun verifyUser(): LoginResult{
+    suspend fun verifyUser(): LoginResult {
 //        val job = BikeFmApp.getMapScope()?.launch {
             val dbUser = mDatabase.userDao().getUser()
             if (dbUser !== null) {
                 return try {
-                    val resUser: LoggedInUser? = serverApi.verifyUser(dbUser.token)
+                    val resUser: User? = serverApi.verifyUser(dbUser.token)
                     if (resUser !== null) {
                         mDatabase.userDao().deleteAllFriends()
                         mDatabase.userDao().updateUser(resUser)
@@ -88,8 +76,8 @@ class UserRepository @Inject constructor(
             }
     }
 
-    private fun setLoggedInUser(loggedInUser: LoggedInUser) {
-        this.cashedUser = loggedInUser
+    private fun setLoggedInUser(user: User) {
+        this.cashedUser = user
         // If user credentials will be cached in local storage, it is recommended it be encrypted
         // @see https://developer.android.com/training/articles/keystore
     }
@@ -121,4 +109,18 @@ class UserRepository @Inject constructor(
         }
         return@withContext result
     }
+
+    suspend fun findUser(username: String): List<Friend>{
+
+        try {
+            val user = serverApi.findUsers(username)
+            if(user !== null)
+                return user
+            else
+                throw(Exception("not found"))
+        } catch(e: Exception) {
+            return listOf<Friend>()
+        }
+    }
+
 }

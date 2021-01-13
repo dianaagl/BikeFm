@@ -161,6 +161,7 @@ class MainActivity: AppCompatActivity(), OnMapReadyCallback {
         permissions: Array<String>,
         grantResults: IntArray
     ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         val permissionsToRequest =
             java.util.ArrayList<String>()
         for (i in grantResults.indices) {

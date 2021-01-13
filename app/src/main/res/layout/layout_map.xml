@@ -5,7 +5,8 @@
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.map.OnlyMap">
+    tools:context=".ui.map.MapActivity">
+
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -19,7 +20,7 @@
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
 
     </com.google.android.material.appbar.AppBarLayout>
-
     <include layout="@layout/map_content" />
     <include layout="@layout/bottom_panel" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

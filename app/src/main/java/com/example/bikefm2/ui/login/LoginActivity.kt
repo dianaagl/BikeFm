@@ -1,6 +1,5 @@
 package com.example.bikefm2.ui.login
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -14,10 +13,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.example.bikefm2.BikeFmApp
 import com.example.bikefm2.R
-import com.example.bikefm2.data.db.BikeDatabase
-import com.example.bikefm2.data.model.LoggedInUser
+import com.example.bikefm2.data.LoginResult
+import com.example.bikefm2.data.model.User
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -107,7 +105,7 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateUiWithUser(model: LoggedInUser) {
+    private fun updateUiWithUser(model: User) {
         val welcome = getString(R.string.welcome)
         val displayName = model.displayName
         // TODO : initiate successful logged in experience
