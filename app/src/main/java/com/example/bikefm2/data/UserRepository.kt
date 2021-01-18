@@ -56,14 +56,6 @@ class UserRepository @Inject constructor(
              return LoginResult(error = "no user")
     }
 
-    suspend fun getFriendsList(): LiveData<List<Friend>> {
-        return mDatabase.userDao().getFriends()
-    }
-
-    suspend fun addFriendsList(friends: List<Friend>){
-        return mDatabase.userDao().addFriends(friends)
-    }
-
     suspend fun setUserLocation(loc: Location) = withContext(Dispatchers.Default){
 //        val job = BikeFmApp.getMapScope()?.launch {
             val dbUser = mDatabase.userDao().getUser()
@@ -89,6 +81,7 @@ class UserRepository @Inject constructor(
             mDatabase.userDao().deleteAll()
             mDatabase.userDao().deleteAllFriends()
             mDatabase.userDao().insert(user)
+            mDatabase.userDao().addFriends(user.friendsList)
             return@withContext LoginResult(success = user)
         } catch(e: Exception) {
             return@withContext LoginResult(error = e.toString())

@@ -30,10 +30,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.bikefm2.R
 import com.example.bikefm2.ui.login.LoginActivity
+import com.example.bikefm2.ui.map.MapUtils
 import com.example.bikefm2.ui.search.SearchActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.snackbar.Snackbar.LENGTH_SHORT
 import com.mapbox.android.core.location.LocationEngine
@@ -165,7 +167,7 @@ class MapActivity :
                 override fun onSlide(view: View, v: Float) {}
             })
 
-        val searchView = findViewById<ImageButton>(R.id.addFriendButton)
+        val searchView = findViewById<MaterialButton>(R.id.addFriendButton)
         searchView.setOnClickListener { v ->
             val intent = Intent(this, SearchActivity::class.java).apply {
                 putExtra(EXTRA_MESSAGE, "message")
@@ -194,18 +196,15 @@ class MapActivity :
                 actionBar?.title = loginResult.success.displayName
                 mapView.getMapAsync(this)
                 locationEngine = LocationEngineProvider.getBestLocationEngine(this)
-                mapViewModel.addFriends(loginResult.success.friendsList)
-
+                friendsAdapter.updateFriendList(
+                    loginResult.success.friendsList
+                )
+                friendsAdapter.notifyDataSetChanged();
             } else {
                 startForResult.launch(Intent(this@MapActivity, LoginActivity::class.java))
             }
         })
-        mapViewModel.friendsList.observe(this@MapActivity, Observer { it ->
-            friendsAdapter.updateFriendList(
-                it
-            )
-            friendsAdapter.notifyDataSetChanged();
-        })
+
         val cm = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         cm.registerNetworkCallback(
             NetworkRequest.Builder()
