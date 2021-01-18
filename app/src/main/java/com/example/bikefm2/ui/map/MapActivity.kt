@@ -131,16 +131,11 @@ class MapActivity :
         listView.layoutManager = LinearLayoutManager(this)
         listView.adapter = friendsAdapter
 
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            requestPermissionsIfNecessary(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
-        }
+        MapUtils.requestPermissionsIfNecessary(
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION),
+            this)
+
         val bottomNavigationView =
             findViewById<View>(R.id.bottom_navigation) as BottomNavigationView
         val bottomSheet = findViewById<LinearLayout>(R.id.bottom_sheet)
@@ -211,14 +206,6 @@ class MapActivity :
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                 .build(), networkCallback
         )
-    }
-
-    override fun onSearchRequested(searchEvent: SearchEvent?): Boolean {
-        val appData = Bundle().apply {
-            putBoolean("JARGON", true)
-        }
-        startSearch(null, false, appData, false)
-        return super.onSearchRequested(searchEvent)
     }
 
     override fun onMapReady(mapboxMap: MapboxMap) {
@@ -465,25 +452,6 @@ class MapActivity :
         }
     }
 
-    private fun requestPermissionsIfNecessary(permissions: Array<String>) {
-        val permissionsToRequest = java.util.ArrayList<String>()
-
-        for (permission in permissions) {
-            if (ContextCompat.checkSelfPermission(this, permission)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                // Permission is not granted
-                permissionsToRequest.add(permission)
-            }
-        }
-        if (permissionsToRequest.size > 0) {
-            ActivityCompat.requestPermissions(
-                this@MapActivity,
-                permissionsToRequest.toTypedArray(),
-                REQUEST_PERMISSIONS_REQUEST_CODE
-            )
-        }
-    }
 //
 //    fun isNetworkActive(): Boolean{
 //        val cm = this@OnlyMap.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
