@@ -16,3 +16,4 @@ gradle.properties
 gradle/wrapper/*
 .idea/*
 node_modules/*
+.gradle 2

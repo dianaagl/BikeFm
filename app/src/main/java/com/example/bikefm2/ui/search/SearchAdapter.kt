@@ -5,68 +5,57 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.View.OnClickListener
+import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import com.example.bikefm2.R
 import com.example.bikefm2.data.model.Friend
+import com.example.bikefm2.ui.map.FriendAdapter
+import com.google.android.material.button.MaterialButton
 
-class SearchAdapter(private val interaction: Interaction? = null) :
-    ListAdapter<Friend, SearchAdapter.FriendViewHolder>(FriendDC()) {
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = FriendViewHolder(
-        LayoutInflater.from(parent.context)
-            .inflate(R.layout.search_friend_layout, parent, false), interaction
-    )
+class SearchAdapter(val itemListener: OnPossibleFriendClickListener) :
+    RecyclerView.Adapter<SearchAdapter.FriendViewHolder>() {
+    var friendsList = listOf<Friend>()
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchAdapter.FriendViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.search_friend_layout, parent, false)
+        return FriendViewHolder(view)
+    }
 
     override fun onBindViewHolder(holder: FriendViewHolder, position: Int) =
-        holder.bind(getItem(position))
+        holder.bind(friendsList.get(position))
 
-    fun swapData(data: List<Friend>) {
-        submitList(data.toMutableList())
+    fun updateFriendList( friendsList: List<Friend>){
+        this.friendsList = friendsList
     }
 
     inner class FriendViewHolder(
-        itemView: View,
-        private val interaction: Interaction?
+        itemView: View
     ) : RecyclerView.ViewHolder(itemView), OnClickListener {
-
-        init {
-            itemView.setOnClickListener(this)
-        }
+        private var current: Friend? = null
+        private val nameTextView = itemView.findViewById<TextView>(R.id.friend_name)
+        private val button = itemView.findViewById<MaterialButton>(R.id.addFriendButton)
 
         override fun onClick(v: View?) {
 
             if (adapterPosition == RecyclerView.NO_POSITION) return
 
-            val clicked = getItem(adapterPosition)
+            val clicked = friendsList.get(adapterPosition)
         }
 
         fun bind(item: Friend) = with(itemView) {
-            // TODO: Bind the data with View
+            current = item
+            nameTextView.text = item.displayName
+            itemView.findViewById<MaterialButton>(R.id.addFriendButton).setOnClickListener{
+                itemListener.onFriendClick(item)
+            }
         }
     }
 
-    interface Interaction {
 
-    }
+    override fun getItemCount() = friendsList.size
 
-    private class FriendDC : DiffUtil.ItemCallback<Friend>() {
-        override fun areItemsTheSame(
-            oldItem: Friend,
-            newItem: Friend
-        ): Boolean {
-            TODO(
-                "not implemented"
-            )
-        }
-
-        override fun areContentsTheSame(
-            oldItem: Friend,
-            newItem: Friend
-        ): Boolean {
-            TODO(
-                "not implemented"
-            )
-        }
+    interface OnPossibleFriendClickListener {
+        fun onFriendClick(friend: Friend)
     }
 }

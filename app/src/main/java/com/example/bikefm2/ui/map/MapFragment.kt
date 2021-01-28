@@ -12,25 +12,27 @@ import android.net.*
 import android.net.ConnectivityManager.NetworkCallback
 import android.os.Bundle
 import android.provider.AlarmClock.EXTRA_MESSAGE
-import android.view.SearchEvent
+import android.view.LayoutInflater
 import android.view.View
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
-import android.widget.ImageButton
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.bikefm2.R
+import com.example.bikefm2.data.Result
 import com.example.bikefm2.ui.login.LoginActivity
-import com.example.bikefm2.ui.map.MapUtils
+import com.example.bikefm2.ui.map.MapUtils.enableLocationComponent
+import com.example.bikefm2.ui.map.MapUtils.requestPermissionsIfNecessary
 import com.example.bikefm2.ui.search.SearchActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -38,9 +40,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCa
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.snackbar.Snackbar.LENGTH_SHORT
-import com.mapbox.android.core.location.LocationEngine
-import com.mapbox.android.core.location.LocationEngineProvider
-import com.mapbox.android.core.location.LocationEngineRequest
+import com.mapbox.android.core.location.*
 import com.mapbox.api.directions.v5.DirectionsCriteria
 import com.mapbox.api.directions.v5.models.DirectionsRoute
 import com.mapbox.api.directions.v5.models.RouteOptions
@@ -70,11 +70,14 @@ import com.mapbox.navigation.base.internal.extensions.coordinates
 import com.mapbox.navigation.core.MapboxNavigation
 import com.mapbox.navigation.core.directions.session.RoutesRequestCallback
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.bottom_panel.*
 import kotlinx.android.synthetic.main.layout_map.*
+import kotlinx.android.synthetic.main.layout_map.container
 import kotlinx.android.synthetic.main.map_content.*
+import kotlinx.android.synthetic.main.map_content.view.*
 import timber.log.Timber
-
+import java.lang.Exception
 
 /**
  * This activity shows how to combine the Mapbox Maps SDK with
@@ -82,63 +85,76 @@ import timber.log.Timber
  * of any kind in this example.
  */
 @AndroidEntryPoint
-class MapActivity :
-    AppCompatActivity(),
-    OnMapReadyCallback,
-    MapboxMap.OnMapLongClickListener {
+class MapFragment :
+    Fragment(),
+    MapboxMap.OnMapLongClickListener,
+    LocationEngineCallback<LocationEngineResult> {
 
-    private var locationObserverCallback: UserLocationObserver? = null
-    private val REQUEST_PERMISSIONS_REQUEST_CODE: Int = 1
+    private val requestPermissionCode = 1
     private var mapboxNavigation: MapboxNavigation? = null
     private var mapboxMap: MapboxMap? = null
-    private val ORIGIN_COLOR = "#32a852" // Green
-    private val DESTINATION_COLOR = "#F84D4D" // Red
 
+    private var friendsAdapter = FriendAdapter()
     private lateinit var mapViewModel: MapViewModel
-    private var locationEngine: LocationEngine? = null
 
     private val startForResult = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result: ActivityResult ->
         if (result.resultCode == Activity.RESULT_OK) {
-            val intent = result.data
-            actionBar?.title = result.data?.getStringExtra("displayName");
-            mapView.getMapAsync(this)
-            locationEngine = LocationEngineProvider.getBestLocationEngine(this)
+            //result.data?.let { actionBar?.title = it.getStringExtra("displayName") }
           }
     }
 
-    @SuppressLint("MissingPermission")
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
 
-        val mapboxNavigationOptions = MapboxNavigation
-            .defaultNavigationOptionsBuilder(this, getString(R.string.mapbox_access_token))
-            .build()
+        MapUtils.createMapInstance(context, getString(R.string.mapbox_access_token))
+        activity?.let {
+            MapUtils.requestPermissionsIfNecessary(
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION),
+                it
+            )
+        }
+    }
 
-        mapboxNavigation = MapboxNavigation(mapboxNavigationOptions)
-        Mapbox.getInstance(applicationContext, getString(R.string.mapbox_access_token))
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
 
-        setContentView(R.layout.layout_map)
-        setActionBar(findViewById(R.id.my_toolbar))
-        mapView.onCreate(savedInstanceState)
+        val view =  inflater.inflate(R.layout.layout_map, container, false)
+        view.mapView.onCreate(savedInstanceState)
+        view.mapView.getMapAsync { mapbox ->
+            context?.let { fragmentContext ->
+                MapUtils.setMapboxProperties(fragmentContext, mapbox, this)
+                activity?.let { act ->
+                    if (ActivityCompat.checkSelfPermission(
+                            act,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        )
+                        != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                            act,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        requestPermissionsIfNecessary(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), act)
+                    } else enableLocationComponent(mapbox, fragmentContext, this)
+                }
+                this.mapboxMap = mapbox
+            }
+        }
 
         mapViewModel = ViewModelProvider(this).get<MapViewModel>(MapViewModel::class.java)
         mapViewModel.getUser()
 
-        val friendsAdapter = FriendAdapter()
-        val listView = findViewById<RecyclerView>(R.id.friends_list)
-        listView.layoutManager = LinearLayoutManager(this)
+        val listView = view.findViewById<RecyclerView>(R.id.friends_list)
+        listView.layoutManager = LinearLayoutManager(activity)
         listView.adapter = friendsAdapter
 
-        MapUtils.requestPermissionsIfNecessary(
-            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION),
-            this)
-
         val bottomNavigationView =
-            findViewById<View>(R.id.bottom_navigation) as BottomNavigationView
-        val bottomSheet = findViewById<LinearLayout>(R.id.bottom_sheet)
+            view.findViewById<View>(R.id.bottom_navigation) as BottomNavigationView
+        val bottomSheet = view.findViewById<LinearLayout>(R.id.bottom_sheet)
         val bottomSheetBehavior = BottomSheetBehavior.from(bottomSheet)
         bottomSheetBehavior.addBottomSheetCallback(
             object : BottomSheetCallback() {
@@ -156,15 +172,16 @@ class MapActivity :
                         }
                         BottomSheetBehavior.STATE_SETTLING -> {
                         }
+                        BottomSheetBehavior.STATE_HALF_EXPANDED -> {
+                        }
                     }
                 }
-
                 override fun onSlide(view: View, v: Float) {}
             })
 
-        val searchView = findViewById<MaterialButton>(R.id.addFriendButton)
-        searchView.setOnClickListener { v ->
-            val intent = Intent(this, SearchActivity::class.java).apply {
+        val searchView = view.findViewById<MaterialButton>(R.id.addFriendButton)
+        searchView.setOnClickListener {
+            val intent = Intent(activity, SearchActivity::class.java).apply {
                 putExtra(EXTRA_MESSAGE, "message")
             }
             startActivity(intent)
@@ -174,9 +191,6 @@ class MapActivity :
             when (item.itemId) {
                 R.id.friends -> {
                     bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
-//                    imgMap.setVisibility(VISIBLE)
-//                    imgDial.setVisibility()
-//                    imgMail.setVisibility(View.GONE)
                 }
                 R.id.page_2 -> {
 
@@ -185,99 +199,28 @@ class MapActivity :
             false
         }
 
-        mapViewModel.user.observe(this@MapActivity, Observer {
+        mapViewModel.user.observe(viewLifecycleOwner, Observer {
             val loginResult = it ?: return@Observer
-            if (loginResult.success !== null) {
-                actionBar?.title = loginResult.success.displayName
-                mapView.getMapAsync(this)
-                locationEngine = LocationEngineProvider.getBestLocationEngine(this)
-                friendsAdapter.updateFriendList(
-                    loginResult.success.friendsList
-                )
-                friendsAdapter.notifyDataSetChanged();
-            } else {
-                startForResult.launch(Intent(this@MapActivity, LoginActivity::class.java))
+            when (loginResult){
+                is Result.Success -> {
+                    //actionBar?.title = loginResult.data.displayName
+
+                    loginResult.data.friends?.let { friends -> friendsAdapter.updateFriendList(friends) }
+                    friendsAdapter.notifyDataSetChanged()
+                }
+                is Result.Error -> {
+                    startForResult.launch(Intent(activity, LoginActivity::class.java))
+                }
             }
         })
 
-        val cm = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val cm = activity?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         cm.registerNetworkCallback(
             NetworkRequest.Builder()
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
                 .build(), networkCallback
         )
-    }
-
-    override fun onMapReady(mapboxMap: MapboxMap) {
-        mapboxMap.setStyle(
-//            Style.MAPBOX_STREETS
-//            Style.Builder().fromUri("mapbox://styles/dianaagl/ckionrj5o3cwo17muljj0whc0")
-            Style.Builder().fromUri("mapbox://styles/dianaagl/ckiorfzij51xq17qvpgyxyk6t")
-
-        ){
-            this.mapboxMap = mapboxMap
-
-            // Add the click and route sources
-            it.addSource(GeoJsonSource("CLICK_SOURCE"))
-            it.addSource(
-                GeoJsonSource(
-                    "ROUTE_LINE_SOURCE_ID",
-                    GeoJsonOptions().withLineMetrics(true)
-                )
-            )
-
-            // Add the destination marker image
-            it.addImage(
-                "ICON_ID",
-                BitmapUtils.getBitmapFromDrawable(
-                    ContextCompat.getDrawable(
-                        this,
-                        R.drawable.mapbox_marker_icon_default
-                    )
-                )!!
-            )
-
-            // Add the LineLayer below the LocationComponent's bottom layer, which is the
-            // circular accuracy layer. The LineLayer will display the directions route.
-            it.addLayerBelow(
-                LineLayer("ROUTE_LAYER_ID", "ROUTE_LINE_SOURCE_ID")
-                    .withProperties(
-                        lineCap(LINE_CAP_ROUND),
-                        lineJoin(LINE_JOIN_ROUND),
-                        lineWidth(6f),
-                        lineGradient(
-                            interpolate(
-                                linear(),
-                                lineProgress(),
-                                stop(0f, color(parseColor(ORIGIN_COLOR))),
-                                stop(1f, color(parseColor(DESTINATION_COLOR)))
-                            )
-                        )
-                    ),
-                "mapbox-location-shadow-layer"
-            )
-
-            // Add the SymbolLayer to show the destination marker
-            it.addLayerAbove(
-                SymbolLayer("CLICK_LAYER", "CLICK_SOURCE")
-                    .withProperties(
-                        iconImage("ICON_ID")
-                    ),
-                "ROUTE_LAYER_ID"
-            )
-
-            mapboxMap.addOnMapLongClickListener(this)
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
-                enableLocationComponent()
-            }
-        }
+        return view
     }
 
     override fun onMapLongClick(latLng: LatLng): Boolean {
@@ -343,89 +286,41 @@ class MapActivity :
         }
     }
 
-    /**
-     * Enable the Maps SDK's LocationComponent
-     */
-    @SuppressLint("MissingPermission")
-    private fun enableLocationComponent() {
-        val DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L
-        val DEFAULT_DURATION_IN_MILLISECONDS = 1000
-        val DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5
-        var request = LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
-            .setPriority(LocationEngineRequest.PRIORITY_NO_POWER)
-            .setMaxWaitTime(DEFAULT_MAX_WAIT_TIME)
-            .build()
-
-        mapboxMap?.getStyle {
-            mapboxMap?.locationComponent?.apply {
-                activateLocationComponent(
-                    LocationComponentActivationOptions.builder(
-                        this@MapActivity,
-                        it
-                    )
-                        .build()
-                )
-                isLocationComponentEnabled = true
-                cameraMode = CameraMode.TRACKING
-                renderMode = RenderMode.COMPASS
-            }
-        }
-        locationObserverCallback = UserLocationObserver(this, mapViewModel)
-        locationEngine?.requestLocationUpdates(
-            request,
-            locationObserverCallback!!,
-            mainLooper
-        )
-        val userLocation = mapboxMap?.locationComponent?.lastKnownLocation
-        if(userLocation !== null) {
-            val position = CameraPosition.Builder()
-                .target(LatLng(userLocation.latitude, userLocation.longitude))
-                .zoom(10.0)
-                .tilt(20.0)
-                .build()
-            mapboxMap?.animateCamera(
-                CameraUpdateFactory.newCameraPosition(position),
-                DEFAULT_DURATION_IN_MILLISECONDS
-            );
-        }
-
-     }
-
     override fun onStart() {
         super.onStart()
-        mapView.onStart()
+        view?.mapView?.onStart()
     }
 
-    public override fun onResume() {
+    override fun onResume() {
         super.onResume()
-        mapView.onResume()
+        view?.mapView?.onResume()
     }
 
-    public override fun onPause() {
+    override fun onPause() {
         super.onPause()
-        mapView.onPause()
+        view?.mapView?.onPause()
     }
 
     override fun onStop() {
         super.onStop()
 //        if(locationEngine !== null) locationEngine!!.removeLocationUpdates(locationObserverCallback!!)
-        mapView.onStop()
+        view?.mapView?.onStop()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         mapboxNavigation?.onDestroy()
-        mapView.onDestroy()
+        view?.mapView?.onDestroy()
     }
 
     override fun onLowMemory() {
         super.onLowMemory()
-        mapView.onLowMemory()
+        view?.mapView?.onLowMemory()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        mapView.onSaveInstanceState(outState)
+        view?.mapView?.onSaveInstanceState(outState)
     }
 
     override fun onRequestPermissionsResult(
@@ -433,32 +328,27 @@ class MapActivity :
         permissions: Array<String>,
         grantResults: IntArray
     ) {
-        super.onRequestPermissionsResult(REQUEST_PERMISSIONS_REQUEST_CODE, permissions, grantResults)
-        val permissionsToRequest =
-            java.util.ArrayList<String>()
+        super.onRequestPermissionsResult(requestPermissionCode, permissions, grantResults)
+        val permissionsToRequest = mutableListOf<String>()
         for (i in grantResults.indices) {
             if (grantResults[i] != PackageManager.PERMISSION_GRANTED)
                 permissionsToRequest.add(permissions[i])
         }
-        if (permissionsToRequest.size > 0) {
-            ActivityCompat.requestPermissions(
-                this,
-                permissionsToRequest.toTypedArray(),
-                REQUEST_PERMISSIONS_REQUEST_CODE
-            )
-        }
-        else{
-            enableLocationComponent()
+        activity?.let {
+            if (permissionsToRequest.size > 0) {
+                ActivityCompat.requestPermissions(
+                    it,
+                    permissionsToRequest.toTypedArray(),
+                    requestPermissionCode
+                )
+            }
+            else{
+                mapboxMap?.let { map -> MapUtils.enableLocationComponent(map, it, this) }
+            }
         }
     }
 
-//
-//    fun isNetworkActive(): Boolean{
-//        val cm = this@OnlyMap.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-//        val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
-//        val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
-//    }
-
+//todo check network for old versions
     private val networkChangeReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
 
@@ -480,6 +370,14 @@ class MapActivity :
 
             super.onUnavailable()
         }
+    }
+
+    override fun onSuccess(result: LocationEngineResult?) {
+        result?.lastLocation?.let { mapViewModel.setUserLocation(it) }
+    }
+
+    override fun onFailure(exception: Exception) {
+        TODO("Not yet implemented")
     }
 }
 

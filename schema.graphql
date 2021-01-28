@@ -1,0 +1,45 @@
+# This file was generated based on ".graphqlconfig". Do not edit manually.
+
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type AuthResponse {
+  error: AuthError
+  token: String
+  user: User
+}
+
+type Mutation {
+  addFriend(friendId: String!): User!
+  confirmFriendship(friendId: String!): User!
+  registration(name: String!, password: String!): AuthResponse!
+  removeFriend(friendId: String!): User!
+  setLocation(latitude: Float!, longitude: Float!): Boolean!
+}
+
+type Query {
+  login(name: String!, password: String!): AuthResponse!
+  user(token: String!): User!
+  usersSearch(searchString: String!): [User!]!
+}
+
+type User {
+  _id: String!
+  friendRequests: [User!]
+  friends: [User!]
+  location: UserLocation
+  name: String!
+  sentFriendRequests: [User!]
+}
+
+type UserLocation {
+  latitude: Float!
+  longitude: Float!
+}
+
+enum AuthError {
+  USERNAME_TAKEN
+  WRONG_CREDENTIALS
+}

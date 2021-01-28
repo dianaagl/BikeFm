@@ -41,12 +41,9 @@ class NetworkService {
     }
 
     companion object {
-        private var mInstance: NetworkService? = null
+        private var mInstance = NetworkService()
 
-        fun getInstance(): NetworkService? {
-            if (mInstance == null) {
-                mInstance = NetworkService()
-            }
+        fun getInstance(): NetworkService {
             return mInstance
         }
     }

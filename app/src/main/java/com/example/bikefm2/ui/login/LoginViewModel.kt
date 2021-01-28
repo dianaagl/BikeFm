@@ -4,9 +4,9 @@ import android.util.Patterns
 import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.*
 import com.example.bikefm2.data.UserRepository
-
+import com.example.bikefm2.data.Result
 import com.example.bikefm2.R
-import com.example.bikefm2.data.LoginResult
+import com.example.bikefm2.data.model.User
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -17,8 +17,8 @@ class LoginViewModel @ViewModelInject constructor(
     private val _loginForm = MutableLiveData<LoginFormState>()
     val loginFormState: LiveData<LoginFormState> = _loginForm
 
-    private val _loginResult = MutableLiveData<LoginResult>()
-    val loginResult: LiveData<LoginResult> = _loginResult
+    private val _loginResult = MutableLiveData<Result<User>>()
+    val loginResult: LiveData<Result<User>> = _loginResult
 
     fun login(username: String, password: String){
         // can be launched in a separate asynchronous job

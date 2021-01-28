@@ -14,9 +14,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.bikefm2.R
-import com.example.bikefm2.data.LoginResult
+import com.example.bikefm2.data.Result
 import com.example.bikefm2.data.model.User
 import dagger.hilt.android.AndroidEntryPoint
+import java.lang.Error
 
 @AndroidEntryPoint
 class LoginActivity : AppCompatActivity() {
@@ -91,17 +92,19 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun observeResult(loading: ProgressBar, loginResult: LoginResult){
+    private fun observeResult(loading: ProgressBar, loginResult: Result<User>){
         loading.visibility = View.GONE
-        if (loginResult.error != null) {
-            showLoginFailed(loginResult.error)
-        }
-        if (loginResult.success != null) {
-            updateUiWithUser(loginResult.success)
-            val resultIntent = Intent()
-            resultIntent.putExtra("displayName", loginResult.success.displayName)
-            setResult(RESULT_OK, resultIntent)
-            finish()
+        when(loginResult){
+            is Result.Success -> {
+                updateUiWithUser(loginResult.data)
+                val resultIntent = Intent()
+                resultIntent.putExtra("displayName", loginResult.data.displayName)
+                setResult(RESULT_OK, resultIntent)
+                finish()
+            }
+            is Result.Error -> {
+                loginResult.exception.message?.let { showLoginFailed(it) }
+            }
         }
     }
 

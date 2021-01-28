@@ -1,0 +1,6 @@
+mutation addFriend($friendId: String!) {
+    addFriend(friendId: $friendId){
+        _id
+        name
+    }
+}

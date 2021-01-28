@@ -5,6 +5,22 @@ query login($name: String!, $password: String!) {
         user {
             _id
             name
+            friends {
+                _id
+                name
+                location {
+                    latitude
+                    longitude
+                }
+            }
+            friendRequests {
+               _id
+               name
+           }
+            sentFriendRequests {
+               _id
+               name
+            }
          }
     }
 }

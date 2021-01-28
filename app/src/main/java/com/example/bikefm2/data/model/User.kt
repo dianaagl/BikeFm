@@ -13,9 +13,13 @@ data class User(
     @PrimaryKey val userId: String,
     @ColumnInfo(name = "first_name") val displayName: String,
     @ColumnInfo(name = "token")val token: String,
-    @Ignore var friendsList: List<Friend>
+    @Ignore var friends: List<Friend>?,
+    @Ignore var friendsRequests: List<Friend>?,
+    @Ignore var sentFriendsRequests: List<Friend>?
+
 ){
-    constructor(userId: String, displayName: String, token: String) : this(userId, displayName, token, listOf<Friend>()){
+    constructor(userId: String, displayName: String, token: String)
+            : this(userId, displayName, token, listOf<Friend>(), listOf<Friend>(), listOf<Friend>()){
 
     }
 
