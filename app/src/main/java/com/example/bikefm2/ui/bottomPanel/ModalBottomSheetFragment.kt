@@ -18,6 +18,7 @@ import com.example.bikefm2.data.model.FriendTypes
 import com.example.bikefm2.ui.login.LoginViewModel
 import com.example.bikefm2.ui.search.SearchActivity
 import com.google.android.material.button.MaterialButton
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_modal_bottomsheet.*
 
 /**
@@ -25,6 +26,7 @@ import kotlinx.android.synthetic.main.fragment_modal_bottomsheet.*
  * Use the [ModalBottomSheet.newInstance] factory method to
  * create an instance of this fragment.
  */
+@AndroidEntryPoint
 class ModalBottomSheetFragment : Fragment(), FriendAdapter.FriendItemListener {
     private var showFriendsState: FriendTypes = FriendTypes.friendReqs
     private lateinit var friendsAdapter: FriendAdapter
@@ -64,24 +66,23 @@ class ModalBottomSheetFragment : Fragment(), FriendAdapter.FriendItemListener {
 
         showFriendsButton.setOnClickListener{
             showFriendsState = FriendTypes.friends
-            friendsAdapter.updateFriends(friends, showFriendsState)
+            friendsAdapter.updateFriends(bottomSheetViewModel.friends, showFriendsState)
         }
         showFriendRequestsButton.setOnClickListener{
             showFriendsState = FriendTypes.friendReqs
-            friendsAdapter.updateFriends(sentFriendReqs, showFriendsState)
+            friendsAdapter.updateFriends(bottomSheetViewModel.sentFriendReqs, showFriendsState)
         }
         showSentFriendRequestsButton.setOnClickListener{
             showFriendsState = FriendTypes.incomingFriendReq
-            friendsAdapter.updateFriends(incomingFriendReqs, showFriendsState)
+            friendsAdapter.updateFriends(bottomSheetViewModel.incomingFriendReqs, showFriendsState)
         }
-
         return view
     }
 
     fun onFriendsAddedCallback(friends: List<Friend>, sentFriendReqs: List<Friend>, incomingFriendReqs: List<Friend>) {
-        this.friends = friends
-        this.sentFriendReqs = sentFriendReqs
-        this.incomingFriendReqs = incomingFriendReqs
+        bottomSheetViewModel.friends = friends
+        bottomSheetViewModel.sentFriendReqs = sentFriendReqs
+        bottomSheetViewModel.incomingFriendReqs = incomingFriendReqs
     }
 
     override fun onItemClick(friend: Friend) {

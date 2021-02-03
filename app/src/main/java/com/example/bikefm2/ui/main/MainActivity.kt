@@ -52,12 +52,6 @@ class MainActivity: AppCompatActivity() {
         mainViewModel = ViewModelProvider(this).get<MainViewModel>(MainViewModel::class.java)
         mainViewModel.getUser()
 
-        val swipeRefreshLayout = findViewById<SwipeRefreshLayout>(R.id.swipeRefreshLayout)
-        swipeRefreshLayout.setOnRefreshListener {
-            mainViewModel.verifyUser()
-            swipeRefreshLayout.isRefreshing = false
-        }
-
         mainViewModel._userRepository.user.observe(this, Observer {
             val loginResult = it ?: return@Observer
             when (loginResult) {
