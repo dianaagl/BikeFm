@@ -76,7 +76,7 @@ class LoginActivity : AppCompatActivity() {
                 false
             }
 
-            loginViewModel.loginResult.observe(this@LoginActivity, Observer {
+            loginViewModel._userRepository.user.observe(this@LoginActivity, Observer {
                 val loginResult = it ?: return@Observer
                 observeResult(loading, loginResult)
             })
@@ -121,6 +121,9 @@ class LoginActivity : AppCompatActivity() {
 
     private fun showLoginFailed(errorString: String) {
         Toast.makeText(applicationContext, errorString, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onBackPressed() {
     }
 }
 

@@ -17,14 +17,10 @@ class LoginViewModel @ViewModelInject constructor(
     private val _loginForm = MutableLiveData<LoginFormState>()
     val loginFormState: LiveData<LoginFormState> = _loginForm
 
-    private val _loginResult = MutableLiveData<Result<User>>()
-    val loginResult: LiveData<Result<User>> = _loginResult
-
     fun login(username: String, password: String){
         // can be launched in a separate asynchronous job
         viewModelScope.launch(Dispatchers.IO) {
            val result = _userRepository.loginUser(username, password)
-           _loginResult.postValue(result)
         }
     }
 
@@ -32,7 +28,6 @@ class LoginViewModel @ViewModelInject constructor(
         // can be launched in a separate asynchronous job
         viewModelScope.launch(Dispatchers.IO) {
             val result = _userRepository.registerUser(username, password)
-            _loginResult.postValue(result)
         }
     }
 
