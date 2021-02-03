@@ -6,7 +6,6 @@
         android:icon="@drawable/ic_baseline_add_reaction_24"
         android:title="@string/friends"/>
     <item
-        android:id="@+id/trips"
         android:enabled="true"
         android:icon="@drawable/ic_baseline_bike_scooter_24"
         android:title="@string/trips"/>
