@@ -9,17 +9,15 @@
     <string name="welcome">"Welcome !"</string>
     <string name="invalid_username">Not a valid username</string>
     <string name="invalid_password">Password must be >5 characters</string>
-    <string name="login_failed">"Login failed"</string>
     <string name="server_url">http://95.217.210.110:4000/graphql</string>
     <string name="action_register">register</string>
-    <string name="msg_long_press_map_to_place_waypoint">str</string>
     <string name="steps_in_route">steps</string>
     <string name="no_routes">no routes</string>
     <string name="route_request_failed">failed</string>
     <string name="friends">Friends</string>
-    <string name="favorites">menu2</string>
     <string name="music">musiv</string>
     <string name="trips">trips</string>
-    <string name="label_act">SearchActivity</string>
     <string name="search_title">search</string>
+    <string name="logout">logout_string</string>
+    <!-- TODO: Remove or change this placeholder text -->
 </resources>

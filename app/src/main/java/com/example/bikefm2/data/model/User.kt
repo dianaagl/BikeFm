@@ -22,5 +22,4 @@ data class User(
             : this(userId, displayName, token, listOf<Friend>(), listOf<Friend>(), listOf<Friend>()){
 
     }
-
 }

@@ -13,3 +13,9 @@ data class Friend(
     val location: Location?,
     @ColumnInfo(name = "type")val type: String
 )
+
+enum class FriendTypes{
+    friends,
+    friendReqs,
+    incomingFriendReq
+}
