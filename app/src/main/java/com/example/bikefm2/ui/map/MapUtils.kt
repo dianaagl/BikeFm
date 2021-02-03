@@ -1,14 +1,12 @@
 package com.example.bikefm2.ui.map
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
-import androidx.core.app.ActivityCompat
+import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
 import com.example.bikefm2.R
 import com.mapbox.android.core.location.*
 import com.mapbox.mapboxsdk.Mapbox
@@ -29,26 +27,18 @@ import com.mapbox.mapboxsdk.style.sources.GeoJsonOptions
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import com.mapbox.mapboxsdk.utils.BitmapUtils
 import com.mapbox.navigation.core.MapboxNavigation
-import com.mapbox.navigation.core.trip.session.LocationObserver
 
 object MapUtils {
     private lateinit var locationEngine: LocationEngine
     private val REQUEST_PERMISSIONS_REQUEST_CODE: Int = 123
 
-//    public fun checkSelfPermissions(permissions: Array<String>, contextCompat: Activity) {
+//    public fun checkPermissions(permissions: Array<String>, contextCompat: Activity) {
 //        val checkPermission = { permissionCode: String ->
 //            ActivityCompat.checkSelfPermission(
 //            contextCompat, permissionCode
 //        ) != PackageManager.PERMISSION_GRANTED }
 //
-//        if (ActivityCompat.checkSelfPermission(
-//                contextCompat,
-//                Manifest.permission.ACCESS_FINE_LOCATION
-//            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
-//                contextCompat,
-//                Manifest.permission.ACCESS_COARSE_LOCATION
-//            ) != PackageManager.PERMISSION_GRANTED
-//        ) {
+//         {
 //            requestPermissionsIfNecessary(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
 //        }
 //
@@ -65,8 +55,7 @@ object MapUtils {
             }
         }
         if (permissionsToRequest.size > 0) {
-            ActivityCompat.requestPermissions(
-                contextCompat,
+            requestPermissions(contextCompat,
                 permissionsToRequest.toTypedArray(),
                 REQUEST_PERMISSIONS_REQUEST_CODE
             )

@@ -20,15 +20,6 @@ import kotlinx.coroutines.launch
 class MapViewModel @ViewModelInject constructor(
     private val _userRepository: UserRepository
 ): ViewModel() {
-    private val _user = MutableLiveData<Result<User>>()
-    val user: LiveData<Result<User>> = _user
-
-    fun verifyUser(){
-        viewModelScope.launch(Dispatchers.IO){
-           val res =  _userRepository.verifyUser()
-           _user.postValue(res)
-        }
-    }
 
     fun setUserLocation(loc: Location){
         viewModelScope.launch {
@@ -36,12 +27,5 @@ class MapViewModel @ViewModelInject constructor(
         }
     }
 
-    fun getUser(){
-        viewModelScope.launch(Dispatchers.IO){
-            val res =  _userRepository.getUser()
-            if(res !== null){
-                _user.postValue(Result.Success(data = res))
-            }
-        }
-    }
+
 }
