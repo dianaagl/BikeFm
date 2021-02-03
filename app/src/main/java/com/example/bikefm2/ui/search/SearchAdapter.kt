@@ -6,11 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.View.OnClickListener
 import android.widget.TextView
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import com.example.bikefm2.R
 import com.example.bikefm2.data.model.Friend
-import com.example.bikefm2.ui.map.FriendAdapter
 import com.google.android.material.button.MaterialButton
 
 class SearchAdapter(val itemListener: OnPossibleFriendClickListener) :
@@ -18,7 +15,7 @@ class SearchAdapter(val itemListener: OnPossibleFriendClickListener) :
     var friendsList = listOf<Friend>()
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchAdapter.FriendViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.search_friend_layout, parent, false)
+            .inflate(R.layout.item_search_friend_layout, parent, false)
         return FriendViewHolder(view)
     }
 

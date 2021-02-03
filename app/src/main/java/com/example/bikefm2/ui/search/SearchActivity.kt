@@ -8,6 +8,8 @@ import android.view.Menu
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -15,6 +17,7 @@ import com.example.bikefm2.R
 import com.example.bikefm2.data.Result
 import com.example.bikefm2.data.UserRepository
 import com.example.bikefm2.data.model.Friend
+import com.example.bikefm2.ui.main.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -24,17 +27,16 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class SearchActivity : AppCompatActivity(), SearchView.OnQueryTextListener, SearchAdapter.OnPossibleFriendClickListener{
-    @Inject lateinit var userRepository: UserRepository
     private lateinit var listView: RecyclerView
     private lateinit var adapter: SearchAdapter
+    private lateinit var searchViewModel: SearchViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
-
-
         setSupportActionBar(findViewById(R.id.my_toolbar))
 
+        searchViewModel = ViewModelProvider(this).get<SearchViewModel>(SearchViewModel::class.java)
         listView = findViewById(R.id.listView)
 
         adapter = SearchAdapter(this)
@@ -42,6 +44,19 @@ class SearchActivity : AppCompatActivity(), SearchView.OnQueryTextListener, Sear
         llm.orientation = LinearLayoutManager.VERTICAL
         listView.layoutManager = llm
         listView.adapter = adapter
+
+        searchViewModel.friends.observe(this, Observer{
+            when(it){
+                is Result.Success -> {
+                    adapter.updateFriendList(it.data)
+                    adapter.notifyDataSetChanged()
+                }
+                is Result.Error ->
+                    Toast.makeText(this@SearchActivity, it.exception.message, Toast.LENGTH_SHORT)
+                    .show()
+            }
+
+        })
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -68,36 +83,22 @@ class SearchActivity : AppCompatActivity(), SearchView.OnQueryTextListener, Sear
         }
     }
 
-    private suspend fun doMySearch(query: String) {
-        lifecycleScope.launch{
-            when (val users = userRepository.findUser(query)) {
-                is Result.Success -> {
-                    adapter.updateFriendList(users.data)
-                    adapter.notifyDataSetChanged()
-                }
-                is Result.Error -> Toast.makeText(this@SearchActivity, users.exception.message, Toast.LENGTH_SHORT)
-                    .show()
-            }
-        }
-    }
-
     override fun onQueryTextSubmit(query: String?): Boolean {
         if(query !== null) {
-            lifecycleScope.launch {
-                doMySearch(query)
-            }
+            searchViewModel.findUsers(query)
         }
         return true
     }
 
     override fun onQueryTextChange(newText: String?): Boolean {
+        if(newText !== null) {
+            searchViewModel.findUsers(newText)
+        }
         return true
     }
 
     override fun onFriendClick(friend: Friend) {
-        lifecycleScope.launch {
-            userRepository.addFriend(friend.userId)
-        }
+        searchViewModel.addFriend(friend)
         Toast.makeText(this, "added", Toast.LENGTH_SHORT).show()
     }
 }
