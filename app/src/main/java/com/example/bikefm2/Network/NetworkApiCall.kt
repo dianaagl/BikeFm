@@ -1,8 +1,10 @@
 package com.example.bikefm2.Network
 
 import AddFriendMutation
+import ConfirmFriendshipMutation
 import LoginQuery
 import RegistrationMutation
+import RemoveFriendMutation
 import SetLocationMutation
 import UsersSearchQuery
 import VerifyQuery
@@ -77,7 +79,7 @@ class NetworkApiCall @Inject constructor() {
 
         val client = NetworkService.getInstance().getApolloClient()
         val response = client.mutate(RegistrationMutation(username, password)).await()
-        if(response.data != null){
+        return@withContext response.data?.let{
             val user = response.data?.registration()?.user()
             val token = response.data?.registration()?.token()
             val error = response.data?.registration()?.error()
@@ -91,10 +93,8 @@ class NetworkApiCall @Inject constructor() {
                     friendsRequests = null,
                     sentFriendsRequests = null
                 ))
-
             else Result.Error(exception = Exception(response.data?.registration()?.error().toString()))
-        }
-        Result.Error(exception = java.lang.Exception(response.errors.toString()))
+        } ?: Result.Error(exception = java.lang.Exception(response.errors.toString()))
     }
     suspend fun setUserLocation(token: String, loc: Location): Boolean = withContext(Dispatchers.IO){
         val client = NetworkService.getInstance().getApolloClientWithTokenIntercetor(token)
@@ -139,7 +139,6 @@ class NetworkApiCall @Inject constructor() {
                         location = null,
                         type = "sent_friend_req"
                     )}
-
                 ))
             } ?:  Result.Error(exception = java.lang.Exception(response.errors.toString()))
         } ?: Result.Error(exception = java.lang.Exception(response.errors.toString()))
@@ -168,6 +167,22 @@ class NetworkApiCall @Inject constructor() {
         val client = NetworkService.getInstance().getApolloClientWithTokenIntercetor(token)
 
         val response = client.mutate(AddFriendMutation(friendId)).await()
+        response.data?.let { Result.Success(data = true) }
+            ?: Result.Error(exception = java.lang.Exception(response.errors.toString()))
+    }
+
+    suspend fun confirmFriendship(friendId: String, token: String): Result<Boolean> = withContext(Dispatchers.IO){
+        val client = NetworkService.getInstance().getApolloClientWithTokenIntercetor(token)
+
+        val response = client.mutate(ConfirmFriendshipMutation(friendId)).await()
+        response.data?.let { Result.Success(data = true) }
+            ?: Result.Error(exception = java.lang.Exception(response.errors.toString()))
+    }
+
+    suspend fun removeFriend(friendId: String, token: String): Result<Boolean> = withContext(Dispatchers.IO){
+        val client = NetworkService.getInstance().getApolloClientWithTokenIntercetor(token)
+
+        val response = client.mutate(RemoveFriendMutation(friendId)).await()
         response.data?.let { Result.Success(data = true) }
             ?: Result.Error(exception = java.lang.Exception(response.errors.toString()))
     }

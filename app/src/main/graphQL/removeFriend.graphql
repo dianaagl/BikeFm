@@ -1,0 +1,22 @@
+mutation removeFriend($friendId: String!) {
+    removeFriend(friendId: $friendId){
+           _id
+           name
+           friends {
+               _id
+               name
+               location {
+                   latitude
+                   longitude
+               }
+           }
+           friendRequests {
+              _id
+              name
+           }
+           sentFriendRequests {
+              _id
+              name
+           }
+    }
+}
