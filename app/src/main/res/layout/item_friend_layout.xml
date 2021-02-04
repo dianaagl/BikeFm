@@ -34,7 +34,7 @@
         android:layout_height="40dp"
         android:layout_toRightOf="@id/displayName"
         android:layout_centerVertical="true"
-        app:icon="@drawable/mapbox_ic_cancel" />
+        app:icon="@drawable/abc_vector_test" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/addFriendButton"
@@ -42,7 +42,7 @@
         android:layout_height="40dp"
         android:layout_toRightOf="@id/displayName"
         android:layout_centerVertical="true"
-        app:icon="@drawable/mapbox_ic_cancel" />
+        app:icon="@drawable/abc_vector_test" />
 
     <Switch
         android:id="@+id/showSwitch"
