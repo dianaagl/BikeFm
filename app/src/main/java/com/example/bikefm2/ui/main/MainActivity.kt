@@ -81,7 +81,6 @@ class MainActivity: AppCompatActivity() {
         val sheetBehavior = BottomSheetBehavior.from(bottomSheet);
         sheetBehavior.addBottomSheetCallback(
             object : BottomSheetCallback() {
-                @SuppressLint("WrongConstant")
                 override fun onStateChanged(view: View, newState: Int) {
                     when (newState) {
                         BottomSheetBehavior.STATE_HIDDEN -> {

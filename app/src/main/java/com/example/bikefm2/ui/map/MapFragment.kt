@@ -5,46 +5,26 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.*
+import android.net.ConnectivityManager
 import android.net.ConnectivityManager.NetworkCallback
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.INVISIBLE
-import android.view.View.VISIBLE
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.NonNull
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.bikefm2.R
-import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.snackbar.Snackbar.LENGTH_SHORT
-import com.mapbox.android.core.location.*
-import com.mapbox.api.directions.v5.DirectionsCriteria
-import com.mapbox.api.directions.v5.DirectionsCriteria.PROFILE_CYCLING
-import com.mapbox.api.directions.v5.MapboxDirections
-import com.mapbox.api.directions.v5.models.DirectionsResponse
-import com.mapbox.api.directions.v5.models.DirectionsRoute
-import com.mapbox.core.constants.Constants.PRECISION_6
-import com.mapbox.geojson.LineString
-import com.mapbox.geojson.Point
+import com.mapbox.android.core.location.LocationEngineCallback
+import com.mapbox.android.core.location.LocationEngineResult
 import com.mapbox.mapboxsdk.Mapbox
-import com.mapbox.mapboxsdk.geometry.LatLng
-import com.mapbox.mapboxsdk.maps.MapboxMap
-import com.mapbox.mapboxsdk.maps.Style
-import com.mapbox.mapboxsdk.style.expressions.Expression.*
-import com.mapbox.mapboxsdk.style.layers.PropertyFactory.*
-import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.fragment_map_layout.*
 import kotlinx.android.synthetic.main.fragment_map_layout.view.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 
 /**
@@ -63,7 +43,7 @@ class MapFragment :
     private val requestPermission =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             val permissionsToRequest = permissions.keys.filter { permissions.get(it) == false }
-            if (permissionsToRequest.size > 0) {
+            if (permissionsToRequest.isNotEmpty()) {
                 activity?.let {
                     ActivityCompat.requestPermissions(
                         it,
@@ -84,11 +64,6 @@ class MapFragment :
         Mapbox.getInstance(context, getString(R.string.mapbox_access_token))
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        mapView.onCreate(savedInstanceState)
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -96,6 +71,7 @@ class MapFragment :
 
         val view =  inflater.inflate(R.layout.fragment_map_layout, container, false)
         mapViewModel = ViewModelProvider(this).get<MapViewModel>(MapViewModel::class.java)
+        view.mapView.onCreate(savedInstanceState)
 
         view.mapView.getMapAsync{
             context?.let { cont ->
@@ -144,19 +120,18 @@ class MapFragment :
         mapView.onStart()
     }
 
-    public override fun onResume() {
+    override fun onResume() {
         super.onResume()
         mapView.onResume()
     }
 
-    public override fun onPause() {
+    override fun onPause() {
         super.onPause()
         mapView.onPause()
     }
 
     override fun onStop() {
         super.onStop()
-//        if(locationEngine !== null) locationEngine!!.removeLocationUpdates(locationObserverCallback!!)
         mapView.onStop()
     }
 

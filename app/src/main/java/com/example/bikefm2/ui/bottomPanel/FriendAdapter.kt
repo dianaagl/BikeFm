@@ -22,7 +22,7 @@ class FriendAdapter(val context: Context, var friendState: FriendTypes):
     inner class ViewHolder(itemView: View) :
         RecyclerView.ViewHolder(itemView) {
         val displayNameText = itemView.findViewById<TextView>(R.id.displayName)
-        val  showFriends = itemView.findViewById<Switch>(R.id.showSwitch)
+        val showFriends = itemView.findViewById<Switch>(R.id.showSwitch)
         val friendImage = itemView.findViewById<ImageView>(R.id.picture)
         val addFriendButton = itemView.findViewById<MaterialButton>(R.id.addFriendButton)
         val deleteFriendButton = itemView.findViewById<MaterialButton>(R.id.deleteFriendButton)
@@ -44,7 +44,7 @@ class FriendAdapter(val context: Context, var friendState: FriendTypes):
                     showFriends.visibility = View.VISIBLE
                 }
                 FriendTypes.friendReqs ->  {
-                    displayNameText.text =friend.displayName
+                    displayNameText.text = friend.displayName
                     addFriendButton.visibility = View.VISIBLE
                     showFriends.visibility = View.INVISIBLE
                 }
