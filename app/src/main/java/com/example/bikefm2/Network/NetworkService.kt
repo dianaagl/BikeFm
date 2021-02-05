@@ -1,4 +1,4 @@
-package com.example.bikefm2.Network
+package com.example.bikefm2.network
 
 import android.util.Log
 import com.apollographql.apollo.ApolloClient
@@ -6,7 +6,6 @@ import com.example.bikefm2.BikeFmApp
 import com.example.bikefm2.R
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import java.io.IOException
 
 class NetworkService {

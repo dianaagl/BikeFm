@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.bikefm2.BikeFmApp
-import com.example.bikefm2.Network.NetworkApiCall
+import com.example.bikefm2.network.NetworkApiCall
 import com.example.bikefm2.db.BikeDatabase
 import com.example.bikefm2.data.model.Friend
 import com.example.bikefm2.data.model.User

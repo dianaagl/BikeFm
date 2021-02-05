@@ -1,4 +1,4 @@
-package com.example.bikefm2.Network
+package com.example.bikefm2.network
 
 import AddFriendMutation
 import ConfirmFriendshipMutation
@@ -8,19 +8,12 @@ import RemoveFriendMutation
 import SetLocationMutation
 import UsersSearchQuery
 import VerifyQuery
-import com.apollographql.apollo.ApolloCall
-import com.apollographql.apollo.api.Response
 import com.apollographql.apollo.coroutines.await
-import com.apollographql.apollo.exception.ApolloException
-import com.apollographql.apollo.coroutines.toDeferred
 import com.example.bikefm2.data.model.Friend
 import com.example.bikefm2.data.model.User
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 import com.example.bikefm2.data.Result
 import com.example.bikefm2.data.Location
 
