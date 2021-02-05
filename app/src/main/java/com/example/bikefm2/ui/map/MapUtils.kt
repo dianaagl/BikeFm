@@ -5,10 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.Color
-import android.graphics.drawable.Drawable
 import android.util.Log
-import android.view.View
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.ContextCompat
 import com.example.bikefm2.R
@@ -19,7 +16,6 @@ import com.mapbox.api.directions.v5.models.DirectionsResponse
 import com.mapbox.core.constants.Constants
 import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
-import com.mapbox.mapboxsdk.Mapbox
 import com.mapbox.mapboxsdk.camera.CameraPosition
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory
 import com.mapbox.mapboxsdk.geometry.LatLng
@@ -28,7 +24,6 @@ import com.mapbox.mapboxsdk.location.modes.CameraMode
 import com.mapbox.mapboxsdk.location.modes.RenderMode
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.Style
-import com.mapbox.mapboxsdk.style.expressions.Expression
 import com.mapbox.mapboxsdk.style.layers.LineLayer
 import com.mapbox.mapboxsdk.style.layers.Property
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory
@@ -36,7 +31,6 @@ import com.mapbox.mapboxsdk.style.layers.SymbolLayer
 import com.mapbox.mapboxsdk.style.sources.GeoJsonOptions
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
 import com.mapbox.mapboxsdk.utils.BitmapUtils
-import kotlinx.android.synthetic.main.fragment_map_layout.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -44,11 +38,11 @@ import retrofit2.Response
 object MapUtils :
     MapboxMap.OnMapLongClickListener{
     private lateinit var accesToken: String
-    const val CLICK_SOURCE_NAME = "CLICK_SOURCE_ID"
-    const val ROUTE_SOURCE_NAME = "ROUTE_LINE_SOURCE_ID"
-    const val CLICK_LAYER_NAME = "CLICK_LAYER"
-    const val ROUTE_LAYER_NAME = "ROUTE_LAYER_ID"
-    const val DEST_ICON_NAME = "ICON_ID"
+    private const val CLICK_SOURCE_NAME = "CLICK_SOURCE_ID"
+    private const val ROUTE_SOURCE_NAME = "ROUTE_LINE_SOURCE_ID"
+    private const val CLICK_LAYER_NAME = "CLICK_LAYER"
+    private const val ROUTE_LAYER_NAME = "ROUTE_LAYER_ID"
+    private const val DEST_ICON_NAME = "ICON_ID"
 
 
     private lateinit var locationEngine: LocationEngine
@@ -106,7 +100,7 @@ object MapUtils :
         }
     }
 
-    fun addClickSourceAndLayer(style: Style, bitMap: Bitmap?) {
+    private fun addClickSourceAndLayer(style: Style, bitMap: Bitmap?) {
         style.addSource(GeoJsonSource(CLICK_SOURCE_NAME))
         style.addLayerAbove(
             SymbolLayer(CLICK_LAYER_NAME, CLICK_SOURCE_NAME)
@@ -118,7 +112,7 @@ object MapUtils :
         style.addImage(DEST_ICON_NAME, bitMap!! )
     }
 
-    fun addRouteSourceANdLayer(style: Style) {
+    private fun addRouteSourceANdLayer(style: Style) {
         style.addSource(
             GeoJsonSource(
                 ROUTE_SOURCE_NAME,
@@ -199,7 +193,7 @@ object MapUtils :
                 .overview(DirectionsCriteria.OVERVIEW_FULL)
                 .profile(DirectionsCriteria.PROFILE_CYCLING)
                 .accessToken(accesToken)
-                .build();
+                .build()
 
             client.enqueueCall( object: Callback<DirectionsResponse> {
                 override fun onResponse(
@@ -210,7 +204,7 @@ object MapUtils :
                         mapboxMap.getStyle {
 
                             val routeLineSource = it.getSourceAs<GeoJsonSource>(ROUTE_SOURCE_NAME)
-                            val currentRoute = response.body()?.routes()?.get(0);
+                            val currentRoute = response.body()?.routes()?.get(0)
                             if (routeLineSource != null) {
                                 currentRoute?.geometry()?.let{ geo ->
                                     routeLineSource.setGeoJson( LineString.fromPolyline( geo,
