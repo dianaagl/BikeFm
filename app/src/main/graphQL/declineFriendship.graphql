@@ -1,5 +1,5 @@
-mutation addFriend($friendId: String!) {
-    addFriend(friendId: $friendId){
+mutation declineFriendship($friendId: String!) {
+    declineFriendship(friendId: $friendId){
         _id
         name
         friends {

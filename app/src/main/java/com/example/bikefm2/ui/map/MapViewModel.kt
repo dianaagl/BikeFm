@@ -22,8 +22,8 @@ class MapViewModel @ViewModelInject constructor(
 ): ViewModel() {
 
     fun setUserLocation(loc: Location){
-        viewModelScope.launch {
-           val res =  _userRepository.setUserLocation(myLocation(loc.latitude, loc.longitude))
+        viewModelScope.launch (Dispatchers.IO){
+           val res = _userRepository.setUserLocation(myLocation(loc.latitude, loc.longitude))
         }
     }
 

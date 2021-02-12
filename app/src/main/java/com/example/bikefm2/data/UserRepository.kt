@@ -150,4 +150,31 @@ class UserRepository @Inject constructor(
             Log.e("error", e.toString())
         }
     }
+
+    suspend fun cancelFriendshipRequest(userId: String) {
+        try{
+            cashedUser?.let { serverApi.cancelFriendshipRequest(userId, it.token) }
+
+        } catch (e: Exception) {
+            Log.e("error", e.toString())
+        }
+    }
+
+    suspend fun removeFriend(userId: String) {
+        try{
+            cashedUser?.let { serverApi.removeFriend(userId, it.token) }
+
+        } catch (e: Exception) {
+            Log.e("error", e.toString())
+        }
+    }
+
+    suspend fun declineFriendship(userId: String) {
+        try{
+            cashedUser?.let { serverApi.declineFriendship(userId, it.token) }
+
+        } catch (e: Exception) {
+            Log.e("error", e.toString())
+        }
+    }
 }

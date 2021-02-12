@@ -14,15 +14,11 @@ import android.view.MenuItem
 import android.view.View
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.NonNull
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.bikefm2.R
 import com.example.bikefm2.data.Result
-import com.example.bikefm2.data.model.Friend
-import com.example.bikefm2.ui.bottomPanel.FriendAdapter
 import com.example.bikefm2.ui.bottomPanel.ModalBottomSheetFragment
 import com.example.bikefm2.ui.login.LoginActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView

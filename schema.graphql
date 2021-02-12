@@ -13,7 +13,9 @@ type AuthResponse {
 
 type Mutation {
   addFriend(friendId: String!): User!
+  cancelFriendshipRequest(friendId: String!): User!
   confirmFriendship(friendId: String!): User!
+  declineFriendship(friendId: String!): User!
   registration(name: String!, password: String!): AuthResponse!
   removeFriend(friendId: String!): User!
   setLocation(latitude: Float!, longitude: Float!): Boolean!

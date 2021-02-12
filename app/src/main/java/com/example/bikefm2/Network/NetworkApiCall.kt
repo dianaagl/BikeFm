@@ -1,7 +1,9 @@
 package com.example.bikefm2.network
 
 import AddFriendMutation
+import CancelFriendshipRequestMutation
 import ConfirmFriendshipMutation
+import DeclineFriendshipMutation
 import LoginQuery
 import RegistrationMutation
 import RemoveFriendMutation
@@ -164,10 +166,10 @@ class NetworkApiCall @Inject constructor() {
             ?: Result.Error(exception = java.lang.Exception(response.errors.toString()))
     }
 
-    suspend fun confirmFriendship(friendId: String, token: String): Result<Boolean> = withContext(Dispatchers.IO){
+    suspend fun cancelFriendshipRequest(friendId: String, token: String): Result<Boolean> = withContext(Dispatchers.IO){
         val client = NetworkService.getInstance().getApolloClientWithTokenIntercetor(token)
 
-        val response = client.mutate(ConfirmFriendshipMutation(friendId)).await()
+        val response = client.mutate(CancelFriendshipRequestMutation(friendId)).await()
         response.data?.let { Result.Success(data = true) }
             ?: Result.Error(exception = java.lang.Exception(response.errors.toString()))
     }
@@ -176,6 +178,22 @@ class NetworkApiCall @Inject constructor() {
         val client = NetworkService.getInstance().getApolloClientWithTokenIntercetor(token)
 
         val response = client.mutate(RemoveFriendMutation(friendId)).await()
+        response.data?.let { Result.Success(data = true) }
+            ?: Result.Error(exception = java.lang.Exception(response.errors.toString()))
+    }
+
+    suspend fun confirmFriendship(friendId: String, token: String): Result<Boolean> = withContext(Dispatchers.IO){
+        val client = NetworkService.getInstance().getApolloClientWithTokenIntercetor(token)
+
+        val response = client.mutate(ConfirmFriendshipMutation(friendId)).await()
+        response.data?.let { Result.Success(data = true) }
+            ?: Result.Error(exception = java.lang.Exception(response.errors.toString()))
+    }
+
+    suspend fun declineFriendship(friendId: String, token: String): Result<Boolean> = withContext(Dispatchers.IO){
+        val client = NetworkService.getInstance().getApolloClientWithTokenIntercetor(token)
+
+        val response = client.mutate(DeclineFriendshipMutation(friendId)).await()
         response.data?.let { Result.Success(data = true) }
             ?: Result.Error(exception = java.lang.Exception(response.errors.toString()))
     }
