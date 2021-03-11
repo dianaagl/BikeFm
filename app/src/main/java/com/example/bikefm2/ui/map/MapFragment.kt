@@ -26,12 +26,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.fragment_map_layout.*
 import kotlinx.android.synthetic.main.fragment_map_layout.view.*
 
-
-/**
- * This activity shows how to combine the Mapbox Maps SDK with
- * ONLY the Navigation SDK. There is no Navigation UI SDK code
- * of any kind in this example.
- */
 @AndroidEntryPoint
 class MapFragment :
     Fragment(),
@@ -117,37 +111,37 @@ class MapFragment :
 
     override fun onStart() {
         super.onStart()
-        mapView.onStart()
+        mapView?.onStart()
     }
 
     override fun onResume() {
         super.onResume()
-        mapView.onResume()
+        mapView?.onResume()
     }
 
     override fun onPause() {
         super.onPause()
-        mapView.onPause()
+        mapView?.onPause()
     }
 
     override fun onStop() {
         super.onStop()
-        mapView.onStop()
+        mapView?.onStop()
     }
 
     override fun onDestroy() {
-        mapView.onDestroy()
+        mapView?.onDestroy()
         super.onDestroy()
     }
 
     override fun onLowMemory() {
-        mapView.onLowMemory()
+        mapView?.onLowMemory()
         super.onLowMemory()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        mapView.onSaveInstanceState(outState)
+        mapView?.onSaveInstanceState(outState)
     }
 
     override fun onRequestPermissionsResult(
